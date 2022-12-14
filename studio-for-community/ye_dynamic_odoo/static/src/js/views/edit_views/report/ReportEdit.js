@@ -9,7 +9,7 @@ odoo.define('ye_dynamic_odoo.ReportEdit', function (require) {
     var Widget = require('web.Widget');
     var ModelFieldSelector = require("web.ModelFieldSelector");
     var FieldBasic = require("ye_dynamic_odoo.FieldBasic");
-    var Wysiwyg = require('web_editor.wysiwyg.root');
+    // var Wysiwyg = require('web_editor.wysiwyg.root');
 
     var QWeb = core.qweb;
 
@@ -323,7 +323,7 @@ odoo.define('ye_dynamic_odoo.ReportEdit', function (require) {
             return String(Math.random()).replace("0.", "RP");
         },
         onCreateTemplate: function (template, onComplete) {
-            const {model} = $.bbq.getState(true), name = `${model.replaceAll(".", "_")}_${this.getRandom().substr(0, 10)}`,
+            const {model} = odoo.studio.state, name = `${model.replaceAll(".", "_")}_${this.getRandom().substr(0, 10)}`,
                 xml_id = `report_studio.${name}`, values = {xml: template, xml_id: xml_id, name: name, model: model};
             values.string = name.split("_").concat(["Report"]).map((str) => str.indexOf("RP") >= 0 ? "" : this.capitalizeFirstLetter(str)).join(" ");
             values.module = "report_studio";

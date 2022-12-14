@@ -2,7 +2,7 @@ a[data-menu-xmlid='menu_app.edit'] {
   display: none;
 }
 .editMode {
-  a[data-menu-xmlid='menu_app.edit'] {
+  a[data-menu-xmlid='menu_app.edit'], a[data-menu-xmlid='studio.menuApps'] {
     background: #454849;
     font-size: 12px;
     display: block;

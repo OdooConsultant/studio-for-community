@@ -2,12 +2,6 @@ odoo.define('ye_dynamic_odoo.AbstractWebClient', function (require) {
 "use strict";
 
     var WebClient = require('web.WebClient');
-    var config = require('web.config');
-    var core = require('web.core');
-    var data_manager = require('web.data_manager');
-    var dom = require('web.dom');
-    var Menu = require('web.Menu');
-    var session = require('web.session');
 
     WebClient.include({
         custom_events: _.extend({}, WebClient.prototype.custom_events, {
@@ -40,7 +34,7 @@ odoo.define('ye_dynamic_odoo.AbstractWebClient', function (require) {
         do_push_state: function (state) {
             this._super(state);
             if (this.editInstance) {
-                const {model} = this.editInstance.appState, state = $.bbq.getState(true);
+                const {model} = this.editInstance.appState, state = odoo.studio.state;
                 if (this.loadEdit || model != state.model) {
                     delete this.loadEdit;
                     this.editInstance.reload(this);

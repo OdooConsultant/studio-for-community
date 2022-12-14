@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
 
-    <t t-inherit="web.ControlPanel" t-inherit-mode="extension">
+    <t t-name="studio.StudioEditor" owl="1">
+        <div class="o_studio">
+            <StudioNavBar />
+        </div>
+    </t>
+
+    <t t-name="studio.Legacy.ControlPanel" t-inherit="web.Legacy.ControlPanel" t-inherit-mode="extension">
         <xpath expr="//nav" position="inside">
             <button type="button" class="btn btn-primary fa fa-lg o_edit fa-wrench" />
         </xpath>
@@ -9,6 +15,18 @@
             <nav t-if="!(props.views.length gt 1)" class="btn-group o_cp_switch_buttons" role="toolbar" aria-label="View switcher">
                 <button type="button" class="btn btn-primary fa fa-lg o_edit fa-wrench" />
             </nav>
+        </xpath>
+    </t>
+
+    <t t-name="studio.StudioIcon" owl="1">
+        <div>
+            <button t-if="isShow" type="button" t-on-click="onClickIconStudio" class="btn btn-primary fa fa-lg o_edit fa-wrench" />
+        </div>
+    </t>
+
+    <t t-name="studio.ControlPanel" t-inherit="web.ControlPanel" t-inherit-mode="extension">
+         <xpath expr="//nav" position="inside">
+             <StudioIcon />
         </xpath>
     </t>
 

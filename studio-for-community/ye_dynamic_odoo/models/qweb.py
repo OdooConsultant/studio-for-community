@@ -5,6 +5,7 @@ import collections
 from lxml import etree, html
 
 from odoo.addons.base.models.qweb import QWeb
+from textwrap import dedent, indent as _indent
 from lxml import etree
 
 compile_node = QWeb._compile_node
@@ -15,7 +16,7 @@ render_supper = QWeb._render
 compile_dynamic_attributes = QWeb._compile_dynamic_attributes
 compile_directive_set = QWeb._compile_directive_set
 compile_directive_foreach = QWeb._compile_directive_foreach
-compile_widget_options = QWeb._compile_widget_options
+compile_directive_options = QWeb._compile_directive_options
 is_static_node = QWeb._is_static_node
 
 
@@ -25,7 +26,6 @@ def _is_static_node(self, el, options):
         if options.get("EditReport", False):
             return False
     return is_static_node(self, el, options)
-
 
 def _render(self, template, values=None, **options):
     from_odo_studio = self.env.context.get("from_odo_studio", False)
@@ -47,120 +47,83 @@ def get_field_chain(self, attribute, first=True):
     return root_param
 
 
-def _compile_directive_set(self, el, options):
+def _compile_directive_set(self, el, options, indent):
     from_odo_studio = self.env.context.get("from_odo_studio", False)
     if from_odo_studio:
         value_edit = False
         var_name = el.get('t-set')
         if 't-value' in el.attrib:
             value_edit = el.get('t-value')
-    result = compile_directive_set(self, el, options)
+    result = compile_directive_set(self, el, options, indent)
     if from_odo_studio:
         if value_edit:
-            result.append(ast.Assign(
-                targets=[self._values_var(ast.Str(var_name + "_edit"), ctx=ast.Store())],
-                value=ast.Str(value_edit)
-            ))
+            result.append(self._indent(f"{var_name}_edit = values[{repr(var_name)}]", indent))
     return result
 
 
-def _compile_directive_foreach(self, el, options):
+def _compile_directive_foreach(self, el, options, indent):
     from_odo_studio = self.env.context.get("from_odo_studio", False)
     if from_odo_studio:
         var_name = el.get('t-as').replace('.', '_')
         value_edit = el.get('t-foreach')
-    result = compile_directive_foreach(self, el, options)
-    if from_odo_studio:
-        return [ast.Assign(
-                targets=[self._values_var(ast.Str(var_name + "_edit"), ctx=ast.Store())],
-                value=ast.Str(value_edit)
-            )]  + result
+    result = compile_directive_foreach(self, el, options, indent)
+    if from_odo_studio and value_edit:
+        return [self._indent(f"{var_name}_edit = {self._compile_expr(value_edit)} or []", indent)] + result
+        # return [self._indent(f"{var_name}_edit = {value_edit}", indent)] + result
+        # return [ast.Assign(
+        #     targets=[self._values_var(ast.Str(var_name + "_edit"), ctx=ast.Store())],
+        #     value=ast.Str(value_edit)
+        # )] + result
     return result
 
 
-def _compile_widget_options(self, el):
+def _compile_directive_options(self, el, options, indent):
     from_odo_studio = self.env.context.get("from_odo_studio", False)
     if from_odo_studio:
-        options = el.get("t-options")
-        if options:
-            el.set("options-values", options)
-    return compile_widget_options(self, el)
+        _options = el.get("t-options")
+        if _options:
+            el.set("options-values", _options)
+    return compile_directive_options(self, el, options, indent)
 
 
-def _compile_dynamic_attributes(self, el, options):
+def _compile_dynamic_attributes(self, el, options, indent):
     from_odo_studio = self.env.context.get("from_odo_studio", False)
-    nodes = compile_dynamic_attributes(self, el, options)
+    code = compile_dynamic_attributes(self, el, options, indent)
     if from_odo_studio:
         for name, value in el.attrib.items():
             if name == "options-values":
-                # el.attrib.pop("options-check")
-                options_edit = '{'
-                value_expr = self._compile_expr(value)
-                for idx, val in enumerate(value_expr.values):
-                    key_expr = value_expr.keys[idx]
-                    if isinstance(val, ast.Attribute):
-                        if isinstance(key_expr, ast.Str):
-                            chain_str = ".".join(self.get_field_chain(val))
-                            options_edit += '"{name}": '.format(name=key_expr.s)
-                            options_edit += '{"attribute": "attribute", '
-                            options_edit += '"field_chain": "{field_chain}"'.format(field_chain=chain_str)
-                            options_edit += '},'
-                    elif isinstance(val, ast.Call):
-                        pass
-                    elif isinstance(val, ast.BoolOp):
-                        pass
-                    elif isinstance(val, ast.NameConstant):
-                        pass
-                options_edit += '}'
-                nodes.append(ast.Call(
-                    func=ast.Attribute(
-                        value=ast.Name(id='self', ctx=ast.Load()),
-                        attr='get_options_values',
-                        ctx=ast.Load()
-                    ),
-                    args=[
-                        self._compile_expr(options_edit),
-                        (self._compile_expr(value) if len(value) > 1 else False)
-                    ], keywords=[],
-                    starargs=None, kwargs=None
-                ))
-        nodes.append(ast.Call(
-            func=ast.Attribute(
-                value=ast.Name(id='self', ctx=ast.Load()),
-                attr='prepare_data_values',
-                ctx=ast.Load()
-            ),
-            args=[
-                ast.Name(id='values', ctx=ast.Load()),
-            ], keywords=[],
-            starargs=None, kwargs=None
-        ))
-    return nodes
+                try:
+                    code.append(
+                        self._indent(
+                            dedent(f"attrs['options-values'] = self.get_options_values({eval(value)})").strip(),
+                            indent))
+                except Exception:
+                    pass
+                finally:
+                    pass
+        code.append(self._indent(dedent(f"attrs['data-values'] = self.prepare_data_values(values)").strip(), indent))
+    return code
 
 
 def prepare_data_values(self, values):
     result = {}
     for key, val in values.items():
         type_data = type(val).__name__
-        if type_data not in ["dict", "bool", "function", "method", "int", "str", "list", "module"] and hasattr(val, "_table"):
+        if type_data not in ["dict", "bool", "function", "method", "int", "str", "list", "module"] and hasattr(val,
+                                                                                                               "_table"):
             type_data = {'model': getattr(val, "_name")}
         result[key] = type_data
-    return [('data-values', json.dumps(result))]
+    return json.dumps(result)
 
 
-def get_options_values(self, option_raw, option_value):
-    for name, value in option_raw.items():
-        # if value and type(value) is dict and value['attribute'] == "attribute":
-            # value['root_obj'] = value['root_obj']._name
-        option_value[name] = value
+def get_options_values(self, option_value):
     for name, value in option_value.items():
         if type(value) is bool:
             option_value[name] = str(value).lower()
-    attr_edit = [('options-values', json.dumps(option_value))]
-    return attr_edit
+    return json.dumps(option_value)
 
 
-def _compile_node(self, el, options):
+def _compile_node(self, el, options, indent):
     from_odo_studio = self.env.context.get("from_odo_studio", False)
     if from_odo_studio:
         path = options['root'].getpath(el)
@@ -174,10 +137,10 @@ def _compile_node(self, el, options):
         if options.get("oe_id") and not options.get("data-oe-id"):
             el.set("data-oe-id", options.get("oe_id"))
 
-    return compile_node(self, el, options)
+    return compile_node(self, el, options, indent)
 
 
-def _compile_directive_content(self, el, options):
+def _compile_directive_content(self, el, options, indent):
     from_odo_studio = self.env.context.get("from_odo_studio", False)
     if from_odo_studio and el.getchildren():
         indexes = collections.defaultdict(lambda: 0)
@@ -190,22 +153,22 @@ def _compile_directive_content(self, el, options):
                 data_id = el.get("data-oe-id")
                 options["oe_model"] = data_model
                 options["oe_id"] = data_id
-    return compile_directive_content(self, el, options)
+    return compile_directive_content(self, el, options, indent)
 
 
-def _compile_directive_field(self, el, options):
+def _compile_directive_field(self, el, options, indent):
     from_odo_studio = self.env.context.get("from_odo_studio", False)
     if from_odo_studio:
         el.set('field-ok', el.get('t-field'))
-    res = compile_directive_field(self, el, options)
+    res = compile_directive_field(self, el, options, indent)
     return res
 
 
-def _compile_directive_esc(self, el, options):
+def _compile_directive_esc(self, el, options, indent):
     from_odo_studio = self.env.context.get("from_odo_studio", False)
     if from_odo_studio:
         el.set("esc-ok", el.get("t-esc"))
-    return compile_directive_esc(self, el, options)
+    return compile_directive_esc(self, el, options, indent)
 
 
 QWeb.get_field_chain = get_field_chain
@@ -215,9 +178,9 @@ QWeb._render = _render
 QWeb._compile_dynamic_attributes = _compile_dynamic_attributes
 QWeb._compile_directive_set = _compile_directive_set
 QWeb._compile_directive_foreach = _compile_directive_foreach
-QWeb._compile_widget_options = _compile_widget_options
+QWeb._compile_directive_options = _compile_directive_options
 QWeb._is_static_node = _is_static_node
-
+#
 QWeb._compile_node = _compile_node
 QWeb._compile_directive_field = _compile_directive_field
 QWeb._compile_directive_content = _compile_directive_content

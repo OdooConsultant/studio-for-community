@@ -1,67 +1,62 @@
-odoo.define('ye_dynamic_odoo.PivotViewContent', function (require) {
-"use strict";
+/** @odoo-module alias=ye_dynamic_odoo.PivotViewContent**/
 
-    var core = require('web.core');
-    // var FieldBasic = require('odoo_dynamic.FieldBasic');
-    // var FormRenderer = require('web.FormRenderer');
-    // var ListViewEdit = require('odoo_dynamic.ListViewEdit');
-    var PivotView = require('web.PivotView');
-    var PivotController = require('web.PivotController');
-    var ActionManager = require('web.ActionManager');
-    var session = require('web.session');
+import {PivotView} from "@web/views/pivot/pivot_view";
+import Base from 'ye_dynamic_odoo.BaseEdit';
+import {ViewContainer} from 'ye_dynamic_odoo.ViewContainer';
+import {View} from "@web/views/view";
 
-    var QWeb = core.qweb;
-    var Base = require('ye_dynamic_odoo.BaseEdit');
-    var Context = require('web.Context');
+const {mount} = owl;
 
-    PivotController.include({
-        init: function (parent, model, renderer, params) {
-            this._super(parent, model, renderer, params);
-            this.props = params;
-        },
-        _pushState: function () {
-            const {fromEdit} = this.props;
-            if (!fromEdit) {
-                this._super();
+
+var PivotEditContent = Base.ContentBase.extend({
+    template: 'PivotViewEdit.Content',
+    init: function (parent, params) {
+        this._super(parent, params);
+        this.parent = parent;
+    },
+    start: function () {
+        const {action} = this.props;
+        this.action = action;
+    },
+    bindAction: function () {
+    },
+    renderView: async function () {
+        let self = this;
+        const {context, res_model} = this.action, {rootViewType} = this.props;
+        const props = {
+            resModel: res_model,
+            type: rootViewType,
+            context: context,
+            display: {
+                controlPanel: false,
             }
         }
-    });
+        // const info = {
+        //     Component: View,
+        //     componentProps: props
+        // }
+        // const env = odoo.rootStudio.env;
+        // await mount(ViewContainer, {
+        //     env,
+        //     props: {info: info},
+        //     target: self.$el[0],
+        //     position: "first-child"
+        // });
 
-    var PivotEditContent = Base.ContentBase.extend({
-        template: 'PivotViewEdit.Content',
-        init: function(parent, params) {
-            this._super(parent, params);
-            this.parent = parent;
-        },
-        start: function () {
-            const {action} = this.props;
-            this.action = action;
-        },
-        bindAction: function () {
-        },
-        renderView: function () {
-            let self = this;
-            const {context, domain, limit, res_model, filter} = this.action, {viewInfo} = this.props;
-            let params = {
-                action: this.action,
-                context: context,
-                domain: domain || [],
-                groupBy: [],
-                limit: limit,
-                filter: filter || [],
-                modelName: res_model,
-                withControlPanel: false,
-                withSearchPanel: false,
-            };
-            let pivotView = new PivotView(viewInfo, params);
-            pivotView.controllerParams.fromEdit = true;
-            pivotView.getController(self).then(function (widget) {
-                widget.appendTo(self.$el);
-                self.bindAction();
-            });
-        },
-    });
-
-    return PivotEditContent;
-
+        // const info = {
+        //     Component: View,
+        //     componentProps: props
+        // }
+        const env = odoo.rootStudio.env;
+        await mount(View, {
+            env,
+            props: props,
+            target: self.$el[0],
+            position: "first-child"
+        });
+    },
 });
+
+export default PivotEditContent;
+
+// });

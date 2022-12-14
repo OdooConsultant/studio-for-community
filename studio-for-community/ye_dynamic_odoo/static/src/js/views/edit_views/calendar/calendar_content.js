@@ -1,30 +1,30 @@
 odoo.define('ye_dynamic_odoo.CalendarViewContent', function (require) {
-"use strict";
+    "use strict";
 
     var core = require('web.core');
     var CalendarView = require('web.CalendarView');
     var CalendarController = require('web.CalendarController');
-    var ActionManager = require('web.ActionManager');
-    var session = require('web.session');
 
     var Base = require('ye_dynamic_odoo.BaseEdit');
-
-    CalendarController.include({
-        init: function (parent, model, renderer, params) {
-            this._super(parent, model, renderer, params);
-            this.props = params;
-        },
-        _pushState: function () {
-            const {fromEdit} = this.props;
-            if (!fromEdit) {
-                this._super();
-            }
-        }
-    });
+    var {ViewContainer} = require('ye_dynamic_odoo.ViewContainer');
+    const {mount} = owl;
+    //
+    // CalendarController.include({
+    //     init: function (parent, model, renderer, params) {
+    //         this._super(parent, model, renderer, params);
+    //         this.props = params;
+    //     },
+    //     _pushState: function () {
+    //         const {fromEdit} = this.props;
+    //         if (!fromEdit) {
+    //             this._super();
+    //         }
+    //     }
+    // });
 
     var FormEditContent = Base.ContentBase.extend({
         template: 'CalendarViewEdit.Content',
-        init: function(parent, params) {
+        init: function (parent, params) {
             this._super(parent, params);
             this.parent = parent;
         },
@@ -34,7 +34,7 @@ odoo.define('ye_dynamic_odoo.CalendarViewContent', function (require) {
         },
         bindAction: function () {
         },
-        renderView: function () {
+        renderView: async function () {
             let self = this;
             const {context, domain, limit, res_model, filter} = this.action, {viewInfo} = this.props;
             let params = {
@@ -48,11 +48,18 @@ odoo.define('ye_dynamic_odoo.CalendarViewContent', function (require) {
                 withControlPanel: false,
                 withSearchPanel: false,
             };
-            let calendarView = new CalendarView(viewInfo, params);
-            calendarView.controllerParams.fromEdit = true;
-            calendarView.getController(self).then(function (widget) {
-                widget.appendTo(self.$el);
-                self.bindAction();
+
+            const info = {
+                View: CalendarView,
+                viewInfo: viewInfo,
+                viewParams: params
+            }
+            const env = odoo.rootStudio.env;
+            await mount(ViewContainer, {
+                env,
+                props: {info: info, isLegacy: true},
+                target: self.$el[0],
+                position: "first-child"
             });
         },
     });

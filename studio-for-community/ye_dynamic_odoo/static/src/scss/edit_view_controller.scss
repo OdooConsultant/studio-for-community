@@ -1,6 +1,12 @@
+.editMode {
+  & > header {
+    display: none;
+  }
+}
+
 .o_web_client.mk_chatter_position_sided {
   &.editMode {
-    a[data-menu-xmlid='menu_app.edit'] {
+    a[data-menu-xmlid='menu_app.edit'], a[data-menu-xmlid='studio.menuApps'] {
       &:before {
         display: none;
       }
@@ -10,7 +16,7 @@
       display: none !important;
     }
   }
-  a[data-menu-xmlid='menu_app.edit'] {
+  a[data-menu-xmlid='menu_app.edit'], a[data-menu-xmlid='studio.menuApps'] {
     background: transparent;
     display: none !important;
     img {
@@ -32,18 +38,23 @@
     }
   }
 }
+
 .o_main_content {
   position: relative;
 }
+
 ._overHide {
   overflow: hidden !important;
 }
+
 ._liEdit {
   display: none !important;
 }
+
 .hide {
   display: none !important;
 }
+
 .wrapEdit {
   &.viewEdit, &.reportEdit {
     ._widgetOption {
@@ -162,9 +173,11 @@
     }
   }
 }
+
 .wrapEdit[view-type='form'] ._editView ._cEvRC {
   background: #f5f5f5;
 }
+
 .wrapEdit {
   position: absolute;
   right: 0px;
@@ -192,13 +205,13 @@
       width: 300px;
       //height: 300px;
       border: 1px solid #494b4b;
-      background: rgb(60,63,65);
+      background: rgb(60, 63, 65);
       border-right-color: #2c2e30;
       display: flex;
       flex-direction: column;
       ._TeP {
         height: 29px;
-        background: rgb(60,63,65);
+        background: rgb(60, 63, 65);
         border-bottom: 1px solid #494b4b;
         //display: flex;
         flex: none;
@@ -214,9 +227,9 @@
           position: relative;
         }
         ._bCeP {
-          background: rgb(52,54,56);
+          background: rgb(52, 54, 56);
           width: 100%;
-          border-top: 1px solid rgb(79,79,79);
+          border-top: 1px solid rgb(79, 79, 79);
           height: 30px;
         }
       }
@@ -225,13 +238,13 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      background: rgb(43,43,43);
+      background: rgb(43, 43, 43);
       position: relative;
       ._hEView {
-        border-top: 1px solid rgb(74,75,75);
+        border-top: 1px solid rgb(74, 75, 75);
         height: 30px;
-        background: rgb(59,61,62);
-        border-bottom: 1px solid rgb(74,75,75);
+        background: rgb(59, 61, 62);
+        border-bottom: 1px solid rgb(74, 75, 75);
       }
       ._cEView {
         //display: flex;
@@ -240,7 +253,7 @@
         ._cEvL {
           //width: 40px;
           background: #393d3f;
-          border-right: 1px solid rgb(77,77,77);
+          border-right: 1px solid rgb(77, 77, 77);
           position: absolute;
           left: 0px;
           /* right: 0px; */
@@ -268,13 +281,13 @@
       }
       ._fEView {
         height: 30px;
-        background: rgb(48,50,52);
-        border-top: 1px solid rgb(54,55,57);
+        background: rgb(48, 50, 52);
+        border-top: 1px solid rgb(54, 55, 57);
       }
     }
     ._headEdit {
       width: 100%;
-      background: rgb(60,63,65);
+      background: rgb(60, 63, 65);
       ul:hover {
         i {
           color: #3c3d3e;
@@ -323,10 +336,12 @@
     }
   }
 }
+
 .wrapEdit.expand {
   position: fixed;
   top: 0px;
 }
+
 .wrapEdit.minus {
   right: 0px;
   width: 200px;
@@ -349,9 +364,9 @@
 
 ._ulView.pTy {
   li {
-    border-right: 1px solid rgb(38,40,41);
+    border-right: 1px solid rgb(38, 40, 41);
     a {
-      color: rgb(189,189,189);
+      color: rgb(189, 189, 189);
       i {
         color: rgb(40, 144, 182);
         font-size: 16px;
@@ -364,6 +379,7 @@
     border-right-color: #4f4f4f;
   }
 }
+
 ._ulView {
   list-style: none;
   margin: 0px;
@@ -398,7 +414,6 @@
   }
 }
 
-
 ._wEditProperty {
   height: 100%;
   width: 100%;
@@ -431,6 +446,7 @@
     }
   }
 }
+
 ._wCTabProp, .wComponent {
   //min-height: 350px;
   //max-height: 350px;
@@ -454,6 +470,7 @@
       margin: 0px;
       padding-bottom: 10px;
       font-size: 14px;
+      color: white;
     }
   }
   ._wComCon {
@@ -461,7 +478,7 @@
       padding-bottom: 10px;
     }
     ._wComTag {
-      ._wComItem a{
+      ._wComItem a {
         border-left: 5px solid #7c588b;
       }
     }
@@ -470,6 +487,7 @@
     }
   }
 }
+
 ._wComItem {
   display: inline-block;
   a {
@@ -490,12 +508,12 @@
     color: #FF9800;
   }
 }
+
 ._wComItem._bdL {
   a {
     border-left: 5px solid #7c588b;
   }
 }
-
 
 ._wTabContentField {
   margin-right: -10px;
@@ -511,7 +529,7 @@
       right: 5px;
       z-index: 1000;
       top: 18px;
-      color: rgb(158,119,179);
+      color: rgb(158, 119, 179);
     }
   }
   ._wTConC {
@@ -537,21 +555,26 @@
     }
   }
 }
+
 ._divSB {
   overflow-y: scroll;
 }
+
 ._divSB::-webkit-scrollbar {
   width: 14px;
 }
+
 ._divSB::-webkit-scrollbar-track {
   background: rgb(52, 53, 54);
 }
+
 ._divSB::-webkit-scrollbar-thumb {
   background: rgb(70, 72, 73);
   border-radius: 10px;
   border: 2.5px solid rgba(0, 0, 0, 0);
   background-clip: padding-box;
 }
+
 ._divSB::-webkit-scrollbar-thumb:hover {
   background: rgb(100, 101, 102);
   border: 1.5px solid rgba(0, 0, 0, 0);
@@ -562,6 +585,7 @@
     overflow: visible;
   }
 }
+
 ._wrapEditType {
   float: left;
   border-left: 1px solid #2c2f30;
@@ -575,18 +599,19 @@
     color: #e4e5e5;
   }
 }
+
 .editMode {
   .o_main_navbar {
     ._liEdit {
       display: block !important;
     }
-    .dropdown-menu.show {
+    .dropdown-menu.d-block {
       z-index: 1005;
       background: #3a3d3e;
       border-color: #2b2b2b;
-      border-left-width: 0px;
+      //border-left-width: 0px;
       border-radius: 0px 0px 5px 0px;
-      margin-top: -2px;
+      //margin-top: -2px;
       a {
         color: #d8d8d8;
         &.active {
@@ -608,6 +633,7 @@
       float: right;
       height: calc(100% - 0.5px);
       li {
+        padding: 13px;
         font-size: 14px;
         background: #0093b2;
         font-weight: bold;
@@ -619,6 +645,7 @@
     }
   }
 }
+
 .accessEdit {
   ._editProperty, ._wIBi {
     display: none !important;
@@ -630,6 +657,7 @@
     }
   }
 }
+
 .wAutomationAccess {
   &.hide {
     display: none;

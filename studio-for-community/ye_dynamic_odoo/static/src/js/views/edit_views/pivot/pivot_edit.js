@@ -1,4 +1,4 @@
-odoo.define('ye_dynamic_odoo.PivotViewEdit', function (require) {
+    odoo.define('ye_dynamic_odoo.PivotViewEdit', function (require) {
 "use strict";
 
     var core = require('web.core');

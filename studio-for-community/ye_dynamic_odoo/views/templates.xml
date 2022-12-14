@@ -60,3 +60,41 @@
         </template>
     </data>
 </odoo>
+
+<!--'ye_dynamic_odoo/static/src/libs/daterangepicker.js',-->
+            <!--'ye_dynamic_odoo/static/src/libs/jquery.stickytableheaders.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/list/list_renderer.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/search/search_view.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/form/form_view.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/form/form_controller.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/chrome/menu.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/chrome/abstract_web_client.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/widgets/data_export.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/widgets/model_field_selector.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/automation_access/automations.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/basic_fields.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/edit_view.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/list/list_edit.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/list/list_content.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/list/list_property.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/form/form_edit.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/form/form_content.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/form/form_property.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/calendar/calendar_edit.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/calendar/calendar_content.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/calendar/calendar_property.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/pivot/pivot_edit.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/pivot/pivot_content.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/pivot/pivot_property.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/graph/graph_edit.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/graph/graph_content.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/graph/graph_property.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/kanban/kanban_edit.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/kanban/kanban_content.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/kanban/kanban_property.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/report/ReportKanBan.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/report/ReportContent.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/report/ReportEdit.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/edit_views/report/ReportProperty.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/abstract_controller.js',-->
+            <!--'ye_dynamic_odoo/static/src/js/views/base.js',-->

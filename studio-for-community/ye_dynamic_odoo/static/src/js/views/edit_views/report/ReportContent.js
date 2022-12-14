@@ -1,5 +1,5 @@
 odoo.define('ye_dynamic_odoo.ReportContent', function (require) {
-"use strict";
+    "use strict";
 
     var core = require('web.core');
     var Base = require('ye_dynamic_odoo.BaseEdit');
@@ -9,6 +9,7 @@ odoo.define('ye_dynamic_odoo.ReportContent', function (require) {
     var KanbanRecord = require('web.KanbanRecord');
     var session = require('web.session');
     var Widget = require('web.Widget');
+    var { download } = require("@web/core/network/download");
 
     var ReportKanBan = require('ye_dynamic_odoo.ReportKanBan');
     var Base = require('ye_dynamic_odoo.BaseEdit');
@@ -21,16 +22,29 @@ odoo.define('ye_dynamic_odoo.ReportContent', function (require) {
             this._super(parent, params);
             this.props = params;
         },
-        onClickPrint: function () {
+        onClickPrint: async function () {
             const {reportParams, action_manager} = this.props, reportUrl = this._makeReportUrls(reportParams);
-            return action_manager._downloadReport(reportUrl['pdf']).then(function () {
+            const env = odoo.rootStudio.env;
+            env.services.ui.block();
+            try {
+                await download({
+                        url: "/report/download",
+                        data: {
+                            data: JSON.stringify([reportUrl['pdf'], "qweb-pdf"]),
+                            context: JSON.stringify(env.services.user.context),
+                        },
+                    });
+            } finally {
+                env.services.ui.unblock();
+            }
+            // return action_manager._downloadReport(reportUrl['pdf']).then(function () {
                 // if (action.close_on_report_download) {
                 //     var closeAction = { type: 'ir.actions.act_window_close' };
                 //     return self.doAction(closeAction, _.pick(options, 'on_close'));
                 // } else {
                 //     return options.on_close();
                 // }
-            });
+            // });
         },
         bindAction: function () {
             this.$el.find(".btnPrint").click(this.onClickPrint.bind(this));
@@ -56,7 +70,7 @@ odoo.define('ye_dynamic_odoo.ReportContent', function (require) {
             reportParams.context.from_odo_studio = true;
             const reportUrl = this._makeReportUrls(reportParams);
             $.get(reportUrl.html, {},
-                function(data) {
+                function (data) {
                     let report = $(data);
                     self.$el.find('._wContent').append(report.find("main"));
                     if (!self.$el.find("div.page").children().length) {
@@ -101,7 +115,11 @@ odoo.define('ye_dynamic_odoo.ReportContent', function (require) {
             this.$el.find(".closeCT").click(this.onClose.bind(this));
         },
         renderView: function () {
-            let reportType = [{label: "External", description: "Business header/footer", template: "ReportEdit.Template.External"},
+            let reportType = [{
+                label: "External",
+                description: "Business header/footer",
+                template: "ReportEdit.Template.External"
+            },
                 {label: "Internal", description: "Minimal header/footer", template: "ReportEdit.Template.Internal"},
                 {label: "Blank", description: "No header/footer", template: "ReportEdit.Template.Blank"}];
             reportType.map((type) => {
@@ -131,7 +149,7 @@ odoo.define('ye_dynamic_odoo.ReportContent', function (require) {
             this.action = action;
             this.reportData = null;
             this.sortData = [["tr", "tr"]];
-            this.urlState = $.bbq.getState(true);
+            this.urlState = odoo.studio.state;
         },
         bindAction: function () {
             this.$el.find("[data-oe-xpath], [path-xpath]").click(this.onClickNode.bind(this));
@@ -142,11 +160,11 @@ odoo.define('ye_dynamic_odoo.ReportContent', function (require) {
             if (viewType !== "kan") {
                 $("._wIBi, ._editProperty").removeClass("hide");
                 $(".wCreateReport").addClass("hide");
-            }else {
+            } else {
                 $("._wIBi, ._editProperty").addClass("hide");
             }
         },
-        createReport: function() {
+        createReport: function () {
             let chooseTemplate = new ChooseTemplateDialog(this, {onClickTemplate: this.onClickTemplate.bind(this)});
             chooseTemplate.renderElement();
             $("body").append(chooseTemplate.$el);
@@ -178,8 +196,10 @@ odoo.define('ye_dynamic_odoo.ReportContent', function (require) {
             this.ref.content.reload();
         },
         renderReportView: function () {
-            const self = this, {model, id} = this.urlState, {domain} = this.props, reportParams = {...this.reportData,
-                context: {...this.action.context, active_id: 7, active_ids: [4], active_model: model}};
+            const self = this, {model, id} = this.urlState, {domain} = this.props, reportParams = {
+                ...this.reportData,
+                context: {...this.action.context, active_id: 7, active_ids: [4], active_model: model}
+            };
             this['_rpc']({
                 model: model,
                 method: 'search_read',
@@ -195,7 +215,7 @@ odoo.define('ye_dynamic_odoo.ReportContent', function (require) {
                     self.ref.content = reportView;
                     reportView.renderElement();
                     self.$el.append(reportView.$el);
-                }else {
+                } else {
                     alert("No Record to load!. Pls create a record before edit pdf template.")
                 }
             }));
@@ -220,7 +240,8 @@ odoo.define('ye_dynamic_odoo.ReportContent', function (require) {
             kanBanView.withControlPanel = false;
             kanBanView.withSearchPanel = false;
             kanBanView.getController(self).then(function (widget) {
-                widget._pushState = () => {};
+                widget._pushState = () => {
+                };
                 widget.appendTo(self.$el);
             });
             this.ref.content = kanBanView;
@@ -228,7 +249,7 @@ odoo.define('ye_dynamic_odoo.ReportContent', function (require) {
         renderView: function () {
             if (this.state.viewType == "kan") {
                 this.renderKanBanView();
-            }else {
+            } else {
                 this.renderReportView();
             }
             this.bindAction();

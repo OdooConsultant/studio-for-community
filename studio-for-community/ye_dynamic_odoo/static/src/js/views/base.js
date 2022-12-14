@@ -120,22 +120,22 @@ odoo.define('ye_dynamic_odoo.BaseEdit', function (require) {
             });
         },
         getData: function () {
-            const {viewInfo} = this.props, {view_id, model} = viewInfo;
-            return {xml: this.ref.content.jsonToXml(), view_id: view_id, new_fields: this.prepareNewField(), model_name: model};
+            const {viewInfo} = this.props, {viewId, model} = viewInfo;
+            return {xml: this.ref.content.jsonToXml(), view_id: viewId, new_fields: this.prepareNewField(), model_name: model};
         },
         jsonToXml: function (arch) {
             return utils["json_node_to_xml"](arch);
         },
         onCloseSubView: function (nodeId, viewType) {},
         getSubViewData: function (nodeId, viewType) {
-            const {model, view_id} = this.viewInfo;
+            const {model, viewId} = this.viewInfo;
             const fieldInfo = this.ref.content.getSubView(nodeId), subViewInfo = fieldInfo.views[viewType], dataUpdate = {};
             dataUpdate.view_key = [model, "field", fieldInfo.name, viewType].join("_");
-            dataUpdate.view_id = subViewInfo.view_id || false;
+            dataUpdate.view_id = subViewInfo.viewId || false;
             dataUpdate.view_type = viewType == "list" ? "tree" : viewType;
             dataUpdate.field_name = fieldInfo.name;
             dataUpdate.parent_model_name = model;
-            dataUpdate.parent_view_id = view_id || false;
+            dataUpdate.parent_view_id = viewId || false;
             dataUpdate.xml = this.jsonToXml(subViewInfo.arch);
             return dataUpdate;
         },
@@ -615,7 +615,7 @@ odoo.define('ye_dynamic_odoo.BaseEdit', function (require) {
                     // let valParse = eval(valChange);
                     // valChange = valParse.length ? valParse : valChange;
                     // node.attrs[attr] = valChange;
-                     if (!node.attrs.attrs) {
+                    if (!node.attrs.attrs) {
                         node.attrs.attrs = {};
                     }
                     node.attrs.attrs[attr] = valChange;

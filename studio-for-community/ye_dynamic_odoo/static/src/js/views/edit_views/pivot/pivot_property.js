@@ -11,7 +11,7 @@ odoo.define('ye_dynamic_odoo.PivotViewProperty', function (require) {
             this._super();
             const {property, view} = this.property;
             property.display_quantity = {label: "Display Count", widget: FieldBasic.Checkbox};
-            property.disable_linking = {label: "Allow Link to List View", widget: FieldBasic.Checkbox};
+            property.disable_linking = {label: "Don't link to List View", widget: FieldBasic.Checkbox};
             property.stacked = {label: "Stacked", widget: FieldBasic.Checkbox};
             view.pivot = {};
             view.pivot.pivot = ["disable_linking", "display_quantity", "stacked"];

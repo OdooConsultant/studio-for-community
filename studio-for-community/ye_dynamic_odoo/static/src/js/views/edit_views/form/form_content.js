@@ -28,9 +28,10 @@ odoo.define('ye_dynamic_odoo.FormEditContent', function (require) {
             this._super(widget, node);
             const {fieldsInfo, viewType} = this.state, {name} = node.attrs, fieldInfo = fieldsInfo[viewType][name];
             this.parent.setNodeId(node);
-            if (widget.$el.parents("._wGroupInner").length && widget.$el.hasClass("o_invisible_modifier")) {
-                widget.$el.parents("tr").addClass("_rowInvisible");
-            }
+            // if (widget.$el.parents("._wGroupInner").length) {
+                 // && widget.$el.hasClass("o_invisible_modifier")
+                // widget.$el.parents("tr").addClass("_rowInvisible");
+            // }
             if (node.lastChild) {
                 this.setRowInvisible(widget.$el);
                 delete node.lastChild;
@@ -42,7 +43,7 @@ odoo.define('ye_dynamic_odoo.FormEditContent', function (require) {
             widget._onClick = () => {};
         },
         setRowInvisible: function (elField) {
-            elField.parents("._wGroupInner").find("> t_body > tr".replace("_", "")).each((idx, el) => {
+            elField.parents("._wGroupInner").find("> tbody > tr").each((idx, el) => {
                 let childVisible = $(el).find("> td > *").filter((_idx, _el) => !$(_el).hasClass("o_invisible_modifier"));
                 if (!childVisible.length) {
                     $(el).addClass("_rowInvisible");
@@ -150,11 +151,11 @@ odoo.define('ye_dynamic_odoo.FormEditContent', function (require) {
                 let $trPlace = $('<tr class="_noSort">').append('<td>');
                 res.find("tr:last-child").after($trPlace);
             }
-            res.find("t_body > tr".replace("_", "")).map((idx, tr) => {
+            res.find("tbody > tr").map((idx, tr) => {
                 tr = $(tr);
                 if (tr.find("> *.oInvisible").length == tr.find("> *").length) {
                     tr.addClass("_rowInvisible")
-                }else if (!tr.hasClass('._noSort')) {
+                }else {
                     let childVisible = tr.find("> td > *").filter((_idx, _el) => !$(_el).hasClass("o_invisible_modifier"));
                     if (!childVisible.length) {
                         tr.addClass("_rowInvisible");
@@ -235,7 +236,7 @@ odoo.define('ye_dynamic_odoo.FormEditContent', function (require) {
             this._super();
             const {viewInfo, action} = this.props, {fields, fieldsInfo, model, parentId} = viewInfo;
             this.viewState = false;
-            const state = $.bbq.getState(true);
+            const state = odoo.studio.state;
             if (!this.viewState) {
                 this.loadParams = {
                     context: action.context || {},
@@ -251,9 +252,9 @@ odoo.define('ye_dynamic_odoo.FormEditContent', function (require) {
                     fieldsInfo: {...fieldsInfo},
                     groupedBy: [],
                     modelName: model,
-                    res_id: state.id || undefined,
+                    res_id: state.id ? parseInt(state.id) : undefined,
                     id: model + "_40",
-                    res_ids: [state.id],
+                    res_ids: state.id ? [parseInt(state.id)] : [],
                     parentID: parentId || undefined,
                     type: "record",
                     viewType: "form",
@@ -383,7 +384,10 @@ odoo.define('ye_dynamic_odoo.FormEditContent', function (require) {
             }
         },
         loadFieldGet: function (modelName) {
-            return this['_rpc']({
+            // const rpc = this.getParent().env.services.rpc;
+        // this.rpc(`/web/dataset/call_kw/${data.model}`, {
+            var rpc = odoo.rootStudio.env.services['rpc'];
+            return rpc("/web/dataset/call_kw/odo.studio", {
                 model: 'odo.studio',
                 method: 'load_field_get',
                 args: [modelName],

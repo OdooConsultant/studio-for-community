@@ -953,7 +953,7 @@ odoo.define('ye_dynamic_odoo.FieldBasic', function (require) {
                 if (type && (type in fieldWidgets)) {
                     const props = {label: string, onChange: (value) => this.onChangeOption.bind(this)(option, value)};
                     if (type == "array") {
-                        props.options = params.params || default_value;
+                        props.options = (params.params && params.params.map((fld) => fld.field_name)) || default_value;
                     }else if (type == "model") {
                         props.modelName = params;
                         props.chain = [];

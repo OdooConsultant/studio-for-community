@@ -1,12 +1,29 @@
 odoo.define('ye_dynamic_odoo.AbstractController', function (require) {
-"use strict";
+    "use strict";
 
     var core = require('web.core');
     var AbstractController = require('web.AbstractController');
     var AbstractView = require('web.AbstractView');
     var EditView = require('ye_dynamic_odoo.EditView');
-
+    var startStudio = require("ye_dynamic_odoo.Start");
+    // var StudioEditor = require("ye_dynamic_odoo.StudioEditor");
+    var { ControlPanel } = require("@web/search/control_panel/control_panel");
+    var {session} = require("@web/session");
     var QWeb = core.qweb;
+    const {Component} = owl;
+
+    class StudioIcon extends Component {
+        setup() {
+            this.isShow = session['showEdit'];
+        }
+        onClickIconStudio() {
+            startStudio(this.env);
+        }
+    }
+
+    StudioIcon.components = {};
+    StudioIcon.template = "studio.StudioIcon";
+    ControlPanel.components = Object.assign(ControlPanel.components, {StudioIcon: StudioIcon});
 
 
     AbstractController.include({
@@ -17,17 +34,18 @@ odoo.define('ye_dynamic_odoo.AbstractController', function (require) {
         },
         start: async function () {
             await this._super(this);
-            if (this._controlPanelWrapper) {
-                const webClient = this.getParent().getParent();
-                let session = this.getSession() || {};
-                this.$el.find(".o_edit").css({display: "none"})
-                if (session['showEdit']) {
+            const env = this.ControlPanel && this.ControlPanel.env;
+            this.$el.find(".o_edit").css({display: "none"});
+            if (this._controlPanelWrapper && !odoo.studio) {
+                // const webClient = this.getParent().getParent();
+                let session_legacy = this.getSession() || {};
+                // this.$el.find(".o_edit").css({display: "none"})
+                if (session_legacy['showEdit']) {
                     this.$el.find(".o_edit").css({display: "block"});
                     this.$el.find(".o_edit").click(() => {
-                        let newView = new EditView(this, {modelName: this.modelName});
-                        newView.renderElement();
-                        webClient.editInstance = newView;
-                        this.getParent().$el.after(newView.$el);
+                        startStudio(env);
+
+                        // this.getParent().$el.after(newView.$el);
                     });
                 }
             }
@@ -38,14 +56,14 @@ odoo.define('ye_dynamic_odoo.AbstractController', function (require) {
             }
             this._super();
         },
-        _renderSwitchButtons: function () {
-            let res = this._super();
-            let session = this.getSession() || {};
-            if (session['showEdit']) {
-                this._renderEditMode(res);
-            }
-            return res;
-        },
+        // _renderSwitchButtons: function () {
+        //     let res = this._super();
+        //     let session = this.getSession() || {};
+        //     if (session['showEdit']) {
+        //         this._renderEditMode(res);
+        //     }
+        //     return res;
+        // },
         _renderEditMode: function (container) {
             const $editMode = $(QWeb.render("EditView.iconMore", this)),
                 webClient = this.getParent().getParent();

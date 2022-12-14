@@ -1,22 +1,40 @@
 from odoo import models, api, fields
-from odoo.addons.base.models import ir_ui_view
+# from odoo.addons.base.models import ir_ui_view, quick_eval
 from odoo.tools.safe_eval import safe_eval
 from odoo.tools import ConstantMapping
+from lxml import etree
+import collections
 
-super_transfer_node_to_modifiers = ir_ui_view.transfer_node_to_modifiers
-
-def inherit_transfer_node_to_modifiers(node, modifiers, context=None, current_node_path=False):
-    super_transfer_node_to_modifiers(node, modifiers, context=context, current_node_path=current_node_path)
-    if context.get("DynamicOdo", False):
-        for a in ('invisible', 'readonly', 'required'):
-            if node.get(a):
-                v = bool(safe_eval(node.get(a), {'context': context or {}}))
-                node_path = current_node_path or ()
-                if node_path and a == 'invisible':
-                    a = "column_invisible"
-                modifiers[a] = v
-
-ir_ui_view.transfer_node_to_modifiers = inherit_transfer_node_to_modifiers
+# super_transfer_node_to_modifiers = ir_ui_view.transfer_node_to_modifiers
+#
+#
+# def inherit_transfer_node_to_modifiers(node, modifiers, context=None):
+#     super_transfer_node_to_modifiers(node, modifiers, context=context)
+#     if context.get("DynamicOdo", False):
+#         for attr in ('invisible', 'readonly', 'required'):
+#             value_str = node.get(attr)
+#             if value_str:
+#                 value = bool(quick_eval(value_str, {'context': context or {}}))
+#                 # node_path = current_node_path or ()
+#                 if attr == 'invisible':
+#                     attr = "column_invisible"
+#                 modifiers[attr] = value
+#         for attr in ('invisible', 'readonly', 'required'):
+#             value_str = node.get(attr)
+#             if value_str:
+#                 value = bool(quick_eval(value_str, {'context': context or {}}))
+#                 if (attr == 'invisible'
+#                         and any(parent.tag == 'tree' for parent in node.iterancestors())
+#                         and not any(parent.tag == 'header' for parent in node.iterancestors())):
+#                     # Invisible in a tree view has a specific meaning, make it a
+#                     # new key in the modifiers attribute.
+#                     modifiers['column_invisible'] = value
+#                 elif value or (attr not in modifiers or not isinstance(modifiers[attr], list)):
+#                     # Don't set the attribute to False if a dynamic value was
+#                     # provided (i.e. a domain from attrs or states).
+#                     modifiers[attr] = value
+#
+# ir_ui_view.transfer_node_to_modifiers = inherit_transfer_node_to_modifiers
 
 
 class IrUiView(models.Model):
@@ -28,13 +46,6 @@ class IrUiView(models.Model):
         if self.env.context.get("from_odo_studio", False) and groups:
             node.set('groups', groups)
         return res
-    #
-    # def _apply_group(self, model, node, modifiers, fields):
-    #     groups = node.get('groups')
-    #     res = super(IrUiView, self)._apply_group(model, node, modifiers, fields)
-    #     if self.env.context.get("from_odo_studio", False) and groups:
-    #         node.set('groups', groups)
-    #     return res
 
     def read_combined(self, fields=None):
         from_odo_studio = self.env.context.get("from_odo_studio", False)
@@ -50,6 +61,46 @@ class IrUiView(models.Model):
                 for view in res:
                     view['arch'] = template.xml
         return res
+
+    def get_report_studio(self, report_id, view_id):
+        template = self.env['odo.studio.report'].search([['view_id', '=', view_id], ['report_id', '=', report_id]],
+                                                        limit=1)
+        if len(template):
+            return template.xml
+        return None
+
+    def _combine(self, hierarchy: dict):
+        report_id = self.env.context.get("REPORT_ID", False)
+        arch_studio = self.get_report_studio(report_id, self.id)
+        if not arch_studio:
+            return super(IrUiView, self)._combine(hierarchy)
+        self.ensure_one()
+        assert self.mode == 'primary'
+
+        combined_arch = etree.fromstring(arch_studio)
+        if self.env.context.get('inherit_branding'):
+            combined_arch.attrib.update({
+                'data-oe-model': 'ir.ui.view',
+                'data-oe-id': str(self.id),
+                'data-oe-field': 'arch',
+            })
+        self._add_validation_flag(combined_arch)
+        queue = collections.deque(sorted(hierarchy[self], key=lambda v: v.mode))
+        while queue:
+            view = queue.popleft()
+            arch = etree.fromstring(view.arch)
+            if view.env.context.get('inherit_branding'):
+                view.inherit_branding(arch)
+            self._add_validation_flag(combined_arch, view, arch)
+            combined_arch = view.apply_inheritance_specs(combined_arch, arch)
+
+            for child_view in reversed(hierarchy[view]):
+                if child_view.mode == 'primary':
+                    queue.append(child_view)
+                else:
+                    queue.appendleft(child_view)
+
+        return combined_arch
 
     def _pop_view_branding(self, element):
         from_odo_studio = self.env.context.get("from_odo_studio", False)
@@ -70,6 +121,25 @@ class IrUiMenu(models.Model):
 
     model_id = fields.Many2one(string="Model", comodel_name="ir.model")
 
+    def load_web_menus(self, debug):
+        """ Loads all menu items (all applications and their sub-menus) and
+        processes them to be used by the webclient. Mainly, it associates with
+        each application (top level menu) the action of its first child menu
+        that is associated with an action (recursively), i.e. with the action
+        to execute when the opening the app.
+
+        :return: the menus (including the images in Base64)
+        """
+        web_menus = super(IrUiMenu, self).load_web_menus(debug)
+        obj_menus = self.browse(list(filter(lambda x: x != 'root', web_menus.keys())))
+
+        for m in obj_menus:
+            if m.id and m.id in web_menus:
+                web_menus[m.id]['parent_id'] = [m.parent_id.id, m.parent_id.display_name]
+                web_menus[m.id]['sequence'] = m.sequence
+
+        return web_menus
+
     @api.model
     def create_new_app(self, values):
         app_name = values.get("app_name", False)
@@ -86,7 +156,6 @@ class IrUiMenu(models.Model):
                 self.create_new_model(values)
             else:
                 self.create({'name': name, 'parent_id': parent_menu.id, 'sequence': 1, 'model_id': model_id})
-
 
     @api.model
     def create_new_model(self, values):
@@ -184,7 +253,6 @@ class IrUiMenu(models.Model):
             values = self.prepare_data(menu)
             self.browse(menu["id"]).write(values)
         return True
-
 
 
 IrUiMenu()
