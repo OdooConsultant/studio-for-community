@@ -87,4 +87,6 @@
     'images': [
         'static/description/module_image.jpg',
     ],
+    'live_test_url': 'http://3.88.219.20:8071/web/login',
+
 }
